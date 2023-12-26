@@ -8,6 +8,14 @@ contract InscriptionTrigram is ERC3525 {
     uint256 public mintLimit;
     uint256 public maxSupply;
     uint128 internal _totalSupply;
+    // Qian as Heaven: all yang, binary '111'.
+    // Kun as Earth: all yin, binary '000'.
+    // Zhen as Thunder: yang followed by two yins, binary '100'.
+    // Xun as Wind: yin yang yin, binary '010'.
+    // Kan as Water: yin yang yang, binary '011'.
+    // Li as Fire: yang yin yang, binary '101'.
+    // Gen as Mountain: two yins followed by a yang, binary '001'.
+    // Dui as Lake: two yangs followed by a yin, binary '110'.
     //乾为天：阳阳阳，二进制表示为 '111'
     //坤为地：阴阴阴，二进制表示为 '000'。
     //震为雷：阳阴阴，二进制表示为 '100'。
@@ -17,7 +25,7 @@ contract InscriptionTrigram is ERC3525 {
     //艮为山：阴阴阳，二进制表示为 '001'。
     //兑为泽：阳阳阴，二进制表示为 '110'。
     uint8[8] private hexagrams = [7, 0, 4, 2, 3, 5, 1, 6];
-    uint8 private nextSlot = 1;  // 从 1 开始
+    uint8 private nextSlot = 1;  // Start from 1
     mapping(address => uint256) private addressToSlot;
 
     using Strings for uint256;
@@ -40,10 +48,10 @@ contract InscriptionTrigram is ERC3525 {
     uint8 slot;
     if (addressToSlot[msg.sender] == 0) {
         uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % 8;
-        slot = hexagrams[random];  // 从易经卦象中选择一个 slot 
+        slot = hexagrams[random];  // 从易经卦象中选择一个 slot ；Choose a slot from the I Ching hexagrams
         addressToSlot[msg.sender] = slot;
     } else {
-        slot = uint8(addressToSlot[msg.sender]); //当铭文处于同一个卦象时你可以和同卦象的铭文进行价值的堆叠
+        slot = uint8(addressToSlot[msg.sender]); //当铭文处于同一个卦象时你可以和同卦象的铭文进行价值的堆叠。You can stack value with inscriptions of the same hexagram
     }
 
     // 篆
