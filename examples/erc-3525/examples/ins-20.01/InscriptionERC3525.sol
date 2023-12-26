@@ -16,18 +16,17 @@ contract InscriptionERC3525 is ERC3525 {
     //艮为山：阴阴阳，二进制表示为 '001'。
     //兑为泽：阳阳阴，二进制表示为 '110'。
     uint8[8] private hexagrams = [7, 0, 4, 2, 3, 5, 1, 6];
-    uint8 private nextSlot = 1;  // 从 1 开始
+    uint8 private nextSlot = 1;  // start at 1
     mapping(address => uint256) private addressToSlot;
 
     using Strings for uint256;
 
     // Struct to represent an Inscription, which is a set of slots
-    struct Inscription {
-        string op;     // Operation, e.g., "mint"
-        uint256 amt;   // Amount, or value associated with the token
-    }
+    // struct Inscription {
+    //   string op;     // Operation, e.g., "mint"
+    // uint256 amt;   }
     // Mapping from tokenId to its Inscription data
-    mapping(uint256 => Inscription) private _inscriptions;
+    //mapping(uint256 => Inscription) private _inscriptions;
 
     constructor(    
         uint64 maxSupply_,
@@ -38,7 +37,7 @@ contract InscriptionERC3525 is ERC3525 {
         mintLimit = mintLimit_;
         nextSlot = 1;
     }
-    function InscriptionMinted(uint256 amt) public {
+       function InscriptionMinted(uint256 amt) public {
     require(tx.origin == msg.sender, "Contracts are not allowed");
     require(amt <= mintLimit, "Exceeded mint limit");
     require(_totalSupply + amt <= maxSupply, "Exceeded max supply");
@@ -50,17 +49,15 @@ contract InscriptionERC3525 is ERC3525 {
         slot = hexagrams[random];  // 从易经卦象中选择一个 slot
         addressToSlot[msg.sender] = slot;
     } else {
-        slot = addressToSlot[msg.sender];  // 重用已有的 slot
+        slot = addressToSlot[msg.sender];  // reuse slot
     }
 
-    // Mint 操作
+    // Mint 
     _mint(msg.sender, slot, amt);
 
-    // 更新总供应量
+    // Update total supply
     _totalSupply += uint128(amt);
 }
-
-
 
 
     function totalSupply() public view override returns (uint256) {
@@ -111,5 +108,7 @@ contract InscriptionERC3525 is ERC3525 {
     // Return the final data URI
     return string(abi.encodePacked("data:application/json;base64,", json));
     }
-  // Add other functions as needed...
+
+    // Add other functions as needed...
+
 }
