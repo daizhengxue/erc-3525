@@ -8,7 +8,16 @@ contract InscriptionERC3525 is ERC3525 {
     uint256 public mintLimit;
     uint256 public maxSupply;
     uint128 internal _totalSupply;
-    uint256 private nextSlot;
+    //坤为地：全阴，二进制表示为 '000'。
+    //震为雷：阳阴阴，二进制表示为 '100'。
+    //巽为风：阴阳阴，二进制表示为 '010'。
+    //坎为水：阴阳阳，二进制表示为 '011'。
+    //离为火：阳阴阳，二进制表示为 '101'。
+    //艮为山：阴阴阳，二进制表示为 '001'。
+    //兑为泽：阳阳阴，二进制表示为 '110'。
+    uint8[8] private hexagrams = [7, 0, 4, 2, 3, 5, 1, 6];
+    uint8 private nextSlot = 1;  // 从 1 开始
+    mapping(address => uint256) private addressToSlot;
 
     using Strings for uint256;
 
@@ -22,50 +31,37 @@ contract InscriptionERC3525 is ERC3525 {
 
     constructor(    
         uint64 maxSupply_,
-        uint64   mintLimit_
+        uint64  mintLimit_
     ) ERC3525("Ins-20", "FINA", 18) {
 
         maxSupply = maxSupply_;
         mintLimit = mintLimit_;
-
+        nextSlot = 1;
     }
-    /*function mintInscription(
-        uint256 slot,
-        string memory op,
-        uint256 amt
-    ) public {
-        require(tx.origin == msg.sender, "Contracts are not allowed");
-        require(keccak256(bytes(op)) == keccak256(bytes("mint")), "Operation must be 'mint'");
-        uint256 tokenId = _mint(msg.sender, slot, amt); // Mint the token with the specified slot and amount
-        require(amt <= mintLimit, "Exceeded mint limit");
-        require(_totalSupply() + amt <= maxSupply, "Exceeded max supply");
-
-        // Store the inscription data associated with the new token
-        _inscriptions[tokenId] = Inscription({
-            //p: p,
-            op: op,
-            //tick: tick,
-            amt: amt
-        });
-    }*/
-
-    function mintInscription(
-    uint256 amt
-    ) public {
+    function InscriptionMinted(uint256 amt) public {
     require(tx.origin == msg.sender, "Contracts are not allowed");
     require(amt <= mintLimit, "Exceeded mint limit");
     require(_totalSupply + amt <= maxSupply, "Exceeded max supply");
-     // use nextSlot a slot number
-    uint256 slot = nextSlot;
-    // Mint the token with the specified slot and amount
-    // If you're not using the tokenId, you can omit the variable
+
+    uint256 slot;
+    if (addressToSlot[msg.sender] == 0) {
+        // 使用区块时间戳和发送者地址生成伪随机数
+        uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % 8;
+        slot = hexagrams[random];  // 从易经卦象中选择一个 slot
+        addressToSlot[msg.sender] = slot;
+    } else {
+        slot = addressToSlot[msg.sender];  // 重用已有的 slot
+    }
+
+    // Mint 操作
     _mint(msg.sender, slot, amt);
 
-    // Update the total supply
+    // 更新总供应量
     _totalSupply += uint128(amt);
-    // Increment nextSlot for the next mint
-    nextSlot++;
-    }
+}
+
+
+
 
     function totalSupply() public view override returns (uint256) {
     return _totalSupply;
@@ -115,8 +111,5 @@ contract InscriptionERC3525 is ERC3525 {
     // Return the final data URI
     return string(abi.encodePacked("data:application/json;base64,", json));
     }
-
-    // Add other functions as needed...
-    
-
+  // Add other functions as needed...
 }
